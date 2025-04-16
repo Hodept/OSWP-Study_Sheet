@@ -1,30 +1,92 @@
 # OSWP-Study_Sheet
 
-Study guide and command sheet for Offensive Security PEN-210 course (Offensive Security Wireless Pentester - OSWP)   TESTING THE PUSH
+###### Dependencies
 
-## Dependencies
-
-In order to run the following commands, install these frameworks first:
+Packages that are needed on the OS for success:
 
 ```bash
 sudo apt install airmon-ng reaver hashcat hostapd dnsmasq nftables apache2 libapache2-mod-php freeradius
 ```
 
-## Open Network with MAC filtering
 
-In the event that fake authentication persistently fails, it is plausible that MAC address filtering is being employed. Under such a scheme, the Access Point (AP) will only permit connections from a predefined list of MAC addresses. Should this be the scenario, it will be necessary to acquire a legitimate MAC address by monitoring network traffic with the aid of Airodump-ng. Subsequently, impersonation of this MAC address should be carried out once the corresponding client has disconnected from the network. It is imperative to refrain from initiating a fake authentication attack targeting a specific MAC address if the client remains active on the AP.
 
-### Packet capture
+# Manage your hardware
+
+### Detailed info about attached USBs
+
+`sudo lsusb -vv`
+
+The iw utility and its variety of options is the only command we need for configuring a Wi-Fi device.
+
+`sudo iw list`
+
+
+
+###### Create a new Virtual Interface
+
+Virtual Interface (VIF) named "wlan0mon" in monitor mode
+
+`sudo iw dev wlan0 interface add wlan0mon type monitor` [on your existing interface create a virtual one]
+
+Dont forget to bring the interface online - 
+
+`sudo ip link set wlan0mon up` [Turn the link on]
+
+`sudo iw dev wlan0mon info` [Detailed info about your interface]
+
+
+
+###### The rfkill Utility
+
+`sudo rfkill block all` [Block every type of radio]
+
+`sudo rfkill list`[list and kill by radio designation]
+
+
+
+## How to Capture Traffic
+
+###### NIC set up
+
+```bash
+kali@kali:~$ sudo ip link set wlan0 down
+
+kali@kali:~$ sudo iwconfig wlan0 mode monitor
+
+kali@kali:~$ sudo ip link set wlan0 up
+```
+
+###### Wireshark filter
+
+`wlan.fc.type == 2`
+
+
+
+###### Remote Packet Capture
+
+`ssh root@10.11.0.196 "sudo -S tcpdump -U -w - -i wlan0mon" | sudo wireshark -k -i -`
+
+
+
+## Aircrack-ng Tool Break down
+
+###### Airodump Packet capture
+
+`sudo airodump-ng -c 3 --bssid 34:08:04:09:3D:38 -w cap1 wlan0mon`
 
 ```bash
 airodump-ng -w <CAPTURE_NAME> -c <CHANNEL> --bssid <BSSID> <INTERFACE>
 ```
 
-### Get your MAC address
+###### Get your MAC address
 
 ```bash
 macchanger --show <INTERFACE>
 ```
+
+
+
+# Attacks by Type
 
 ### Fake authentication attack
 
@@ -515,47 +577,43 @@ sudo cat /tmp/systemd-private-b37…aef-apache2.service-b...i/tmp/passphrase.txt
 ## Troubleshooting
 
 - Make sure that hostapd-mana is installed on Kali. Default installations currently feature hostapd, hostapd-wpa and hostapd_cli. None of these frameworks feature the *mana_wpaout* section in the *hostapd-mana.config*, and will result in error: *unknown configuration item 'mana_wpaout'*
+
 - When starting the exam, fist thing after connecting to the .ovpn is to test both **SSH** and **RDP** protocols to ensure connection works as intended.
+
 - In order to list wireless interfaces, execute command:
   
   ```bash
   sudo airmon-ng
   ```
+
 - To restart Network Manager, execute command:
   
   ```bash
   systemctl restart NetworkManager.service
   ```
 
+## 
+
+--------------------- Notable thoughts ------------------------
+
+##### Open Network with MAC filtering -
+
+* if association to the network is still failing check MAC address filtering. 
+  
+  * To check: 
+    
+    * Determine a client that has an active connection with the target AP
+    
+    * Clone the client MAC adderess 
+    
+    * Associate the stolen MAC address to your client by replacing the MAC. 
+    
+    * Attempt to re-connect to the Target AP with the clonned MAC address. 
+
+
+
 ## Sources
 
 - [LIODEUS OSWP Cheatsheet](https://liodeus.github.io/2020/10/29/OSWP-personal-cheatsheet.html)
 - [Hashcat File Formats](https://hashcat.net/wiki/doku.php?id=example_hashes)
 - [Hashcat Cracking WPA/WPA2](https://hashcat.net/wiki/doku.php?id=cracking_wpawpa2)
-
-## Disclaimer and Legal Notice
-
-### Ethical Considerations and Legal Compliance
-
-The techniques, commands, and procedures outlined in this guide are intended solely for educational purposes and preparing for the Offensive Security PEN-210 course (Offensive Security Wireless Pentester - OSWP). These techniques involve methodologies that, if misused, may constitute illegal activities. Users are strongly cautioned against engaging in any unauthorized and/or unlawful actions.
-
-### Scope of Use
-
-- **Authorized Environments Only**: The execution of penetration testing, network attacks, and other tactics described herein should only be performed on networks and systems that are explicitly owned or authorized for testing by the user. This includes personal hardware, controlled environments, or environments for which explicit, documented permission has been granted.
-- **No Unauthorized Use**: Under no circumstances should these techniques be applied to networks, systems, or devices without explicit authorization. Unauthorized use of these techniques may lead to legal consequences and is strongly condemned.
-
-### Exam Conduct
-
-- **Adherence to Exam Guidelines**: While this guide serves as preparation material for the OSWP exam, users must strictly adhere to the guidelines, rules, and ethical standards set forth by Offensive Security during the examination.
-- **Prohibited Actions**: Any attempt to use these techniques outside of the specified exam environment, or in a manner not aligned with the exam's rules, may result in disqualification, legal action, and other serious consequences.
-
-### Liability
-
-- **No Responsibility for Misuse**: The authors, contributors, and associated entities of this guide accept no responsibility or liability for any misuse, damage, or illegal activities arising from the information presented. Users are solely responsible for their actions.
-- **Acknowledgment of Risk**: Users acknowledge the risks involved in security testing and penetration testing and agree to ensure ethical and legal use of this information.
-
-### Continuous Learning and Ethical Growth
-
-- **Commitment to Ethical Hacking**: Users are encouraged to pursue knowledge in cybersecurity and ethical hacking with a strong commitment to legal compliance, ethical behavior, and respect for privacy and data protection.
-
-By using the information in this guide, you acknowledge having read, understood, and agreed to this disclaimer and all its terms. Your use of this information indicates your acceptance of the risks and your commitment to using this knowledge responsibly and ethically.
