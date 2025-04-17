@@ -8,8 +8,6 @@ Packages that are needed on the OS for success:
 sudo apt install airmon-ng reaver hashcat hostapd dnsmasq nftables apache2 libapache2-mod-php freeradius
 ```
 
-
-
 # Manage your hardware
 
 ### Detailed info about attached USBs
@@ -19,8 +17,6 @@ sudo apt install airmon-ng reaver hashcat hostapd dnsmasq nftables apache2 libap
 The iw utility and its variety of options is the only command we need for configuring a Wi-Fi device.
 
 `sudo iw list`
-
-
 
 ###### Create a new Virtual Interface
 
@@ -34,15 +30,11 @@ Dont forget to bring the interface online -
 
 `sudo iw dev wlan0mon info` [Detailed info about your interface]
 
-
-
 ###### The rfkill Utility
 
 `sudo rfkill block all` [Block every type of radio]
 
 `sudo rfkill list`[list and kill by radio designation]
-
-
 
 ## How to Capture Traffic
 
@@ -60,13 +52,9 @@ kali@kali:~$ sudo ip link set wlan0 up
 
 `wlan.fc.type == 2`
 
-
-
 ###### Remote Packet Capture
 
 `ssh root@10.11.0.196 "sudo -S tcpdump -U -w - -i wlan0mon" | sudo wireshark -k -i -`
-
-
 
 ## Aircrack-ng Tool Break down
 
@@ -83,8 +71,6 @@ airodump-ng -w <CAPTURE_NAME> -c <CHANNEL> --bssid <BSSID> <INTERFACE>
 ```bash
 macchanger --show <INTERFACE>
 ```
-
-
 
 # Attacks by Type
 
@@ -609,8 +595,6 @@ sudo cat /tmp/systemd-private-b37…aef-apache2.service-b...i/tmp/passphrase.txt
     * Associate the stolen MAC address to your client by replacing the MAC. 
     
     * Attempt to re-connect to the Target AP with the clonned MAC address. 
-
-
 
 ## Sources
 
