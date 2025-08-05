@@ -230,7 +230,10 @@ ip link set wlan0 up
   airodump-ng -c <channel> --bssid <BSSID> -w capture wlan0mon
   
   #Examples
+  # Scanning/Dumping  WPS networks
   airodump-ng wlan0 --manufacturer --wps --band abg -c 11
+  
+  #Traditional Dumping
   airodump-ng wlan0 -c 6 --bssid 6E:89:D4:EC:34:37 -w 
   ./wireless_cap/testing_my_knowledge 
   
@@ -525,6 +528,10 @@ hashcat -m 5500 hash.txt wordlist.txt --show
   
   * `tshark -r wifi-mgmt-01.cap -Y "wlan.bssid == F0:9F:C2:71:22:16 && x509sat.IA5String" -T fields -e x509sat.IA5String`
 
+* Extract potential user names from pcap
+  
+  * `tshark -r WPA-01.cap -Y '(eap && wlan.ra == BSSID_MAC:ADDRESS) && (eap.identity)' -T fields -e eap.identity`
+
 * Pulling cert from Network PCAP
   
   * `tshark -r capture.pcap -Y '(eap.code == 2) && (wlan.sa == BSSID_MAC:ADDRESS) && (tls.handshake.certificate)' `
@@ -535,7 +542,7 @@ hashcat -m 5500 hash.txt wordlist.txt --show
 
 * convert contents to PEM/DER
   
-  * `tshark -r WPA-01.cap -Y '(eap && wlan.ra == BSSID_MAC:ADDRESS) && (eap.identity)' -T fields -e eap.identity`
+  * output cert contents and copy to clip board
   
   * `vi cert.txt 
     xxd -r -ps cert.txt | openssl x509 -inform der -text`
