@@ -354,6 +354,16 @@ ip link set wlan0 up
             private_key="./client.key"
             private_key_passwd="whatever"
     }
+    
+    ----------------------
+    #WPA-MGT #WPA-MGT (WPA Enterprise) [MD5 Connection type]
+    network={
+        ssid="<Your_SSID>"
+        key_mgmt=IEEE8021X
+        eap=MD5
+        identity="<Your_Username>"
+        password="<Your_Password>"
+    }
     ```
 
 * Connecting  
