@@ -95,8 +95,6 @@
   * This file is referenced in `mana.conf`
 
 * OpenSSL cert generation
-  
-  - 
 
 * Spawn Rouge AP
   
