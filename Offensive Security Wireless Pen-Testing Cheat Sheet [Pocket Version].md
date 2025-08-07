@@ -291,7 +291,7 @@ ip link set wlan0 up
   * ```bash
     #OPN Network
     network={
-        ssid="ssid_name"
+        ssid="<Your_SSID>"
         key_mgmt=NONE
         scan_ssid=1
     }
@@ -299,7 +299,7 @@ ip link set wlan0 up
     #WEP Network
     # WEP password should be in lowercase or uppercase hex, remove any double quotes and colons
     network={
-      ssid="wifi-old"
+      ssid="<Your_SSID>"
       key_mgmt=NONE
       wep_key0=hex_password
       wep_tx_keyidx=0
@@ -309,7 +309,7 @@ ip link set wlan0 up
     #WPA/WPA2/WPA3-PSK Network
     # Available proto version: WPA, WPA2, WPA3
     network={
-        ssid="wifi-mobile"
+        ssid="<Your_SSID>"
         psk="password"
         scan_ssid=1
         key_mgmt=WPA-PSK
@@ -319,7 +319,7 @@ ip link set wlan0 up
     -----------------------------
     #WPA3-SAE
     network={
-            ssid="wifi-regional"
+            ssid="<Your_SSID>"
             key_mgmt=SAE
             sae_password="chocolate1"
             proto=RSN
@@ -331,7 +331,7 @@ ip link set wlan0 up
     ----------------------------
     #WPA-MGT (WPA Enterprise) [User/Pass Connection Type]
     network={
-        ssid="wifi-corp"
+        ssid="<Your_SSID>"
         bssid=F0:9F:C2:71:22:15
         key_mgmt=WPA-EAP
         eap=PEAP
@@ -343,7 +343,7 @@ ip link set wlan0 up
     ------------------------------
     #WPA-MGT (WPA Enterprise) [client certificate Connection Type]
     network={
-            ssid="wifi-global"
+            ssid="<Your_SSID>"
             scan_ssid=1
             mode=0
             proto=RSN
